@@ -1,4 +1,4 @@
-module github.com/sinistra/climacell
+module sinistra/climacell
 
 go 1.14
 

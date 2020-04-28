@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/joho/godotenv"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+
+	"sinistra/climacell/climacell"
 )
 
 func main() {
@@ -30,10 +32,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("error sending HTTP request: %v", err)
 	}
-	responseBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatalf("error reading HTTP response body: %v", err)
+
+	var weatherSamples []climacell.Weather
+	d := json.NewDecoder(res.Body)
+	if err := d.Decode(&weatherSamples); err != nil {
+		log.Fatalf("error deserializing weather data")
 	}
 
-	log.Println("We got the response:", string(responseBytes))
+	for _, w := range weatherSamples {
+		if w.Temp != nil && w.Temp.Value != nil {
+			log.Printf("The temperature at %s is %f degrees %s\n",
+				w.ObservationTime.Value, *w.Temp.Value, w.Temp.Units)
+		} else {
+			log.Printf("No temperature data available at %s\n",
+				w.ObservationTime.Value)
+		}
+	}
+
+	// log.Println("We got the response:", string(responseBytes))
 }
